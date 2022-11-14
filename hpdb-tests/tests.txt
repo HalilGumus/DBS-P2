@@ -1,0 +1,117 @@
+commandfile1
+
+n
+ih H001 Haribo Bonn
+ip P001 Goldbaeren 1.89 H001
+ip P002 Colorado 1.69 H001
+
+--> führt zu folgendem Datenbankzustand: 
+
+hersteller
+hnr  name   stadt
+H001 Haribo Bonn
+
+produkt
+pnr  name       preis hnr
+P001 Goldbaeren 1.89  H001
+P002 Colorado   1.69  H001
+
+--------------------------------------------------
+
+commandfile2
+
+ip P003 Bumix 1.79 H001 
+ip P004 Snickers 0.60 H002
+
+--> Fehlschlag (warum?); keine Änderung der Datenbank
+
+--------------------------------------------------
+
+commandfile3
+
+ip P003 Bumix 1.79 H001 
+ih H002 Mars Viersen
+ip P004 Snickers 0.60 H002
+ip P005 Raider 0.70 H002
+
+--> führt zu folgendem Datenbankzustand: 
+
+hersteller
+hnr  name   stadt
+H001 Haribo Bonn
+H002 Mars   Viersen
+
+produkt
+pnr  name       preis hnr
+P001 Goldbaeren 1.89  H001
+P002 Colorado   1.69  H001
+P003 Bumix      1.79  H001
+P004 Snickers   0.60  H002
+P005 Raider     0.70  H002
+
+--------------------------------------------------
+
+commandfile4
+
+ip P005 Twix 0.80 H002
+i H003 Lindt Aachen P006 Goldhase 2.95
+
+--> führt zu folgendem Datenbankzustand: 
+
+hersteller
+hnr  name   stadt
+H001 Haribo Bonn
+H002 Mars   Viersen
+H003 Lindt  Aachen
+
+produkt
+pnr  name       preis hnr
+P001 Goldbaeren 1.89  H001
+P002 Colorado   1.69  H001
+P003 Bumix      1.79  H001
+P004 Snickers   0.60  H002
+P005 Twix       0.80  H002
+P006 Goldhase   2.95  H003
+
+--------------------------------------------------
+
+commandfile5
+
+dp P004
+dh H001
+ih H0004 Katjes Emmerich
+
+--> Fehlschlag (warum?); keine Änderung der Datenbank
+
+--------------------------------------------------
+
+commandfile6
+
+dp P004
+dh H001
+ih H004 Katjes Emmerich
+
+--> führt zu folgendem Datenbankzustand: 
+
+hersteller
+hnr  name   stadt
+H002 Mars   Viersen
+H003 Lindt  Aachen
+H004 Katjes Emmerich
+
+produkt
+pnr  name       preis hnr
+P005 Twix       0.80  H002
+P006 Goldhase   2.95  H003
+
+--------------------------------------------------
+
+commandfile7
+
+ch
+cp
+
+Ausgabe:
+Anzahl Hersteller: 3
+Anzahl Produkte: 2
+
