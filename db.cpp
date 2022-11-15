@@ -20,12 +20,12 @@ int db_login(const string &user, const string &password, const string &host, con
 
     if (PQstatus(conn) != CONNECTION_OK)
     {
-        cout << "Connection failed" << endl;
+        cout << "Connection failed!" << endl;
         return -1;
     }
     else
     {
-        cout << "Connection ok" << endl;
+        cout << "Connection ok!" << endl;
         return 0;
     }
 }
@@ -35,7 +35,7 @@ void db_logout()
 {
     PQfinish(conn);
     cout << "Connection closed" << endl;
-};
+}
 
 // -------------------
 // Transaktionsbefehle
@@ -57,7 +57,7 @@ int db_begin()
 
     PQclear(res);
     return 0;
-};
+}
 
 int db_commit()
 {
@@ -74,7 +74,7 @@ int db_commit()
 
     PQclear(res);
     return 0;
-};
+}
 
 int db_rollback()
 {
@@ -85,14 +85,12 @@ int db_rollback()
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "ROLLBACK failed" << endl;
         return -1;
     }
 
     PQclear(res);
-    db_logout();
     return 0;
-};
+}
 
 // ----------------------------------
 // DB-Schema anlegen und zurücksetzen
@@ -109,13 +107,12 @@ int db_create_table_hersteller()
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "Creating table hersteller failed" << endl;
         return -1;
     }
 
     PQclear(res);
     return 0;
-};
+}
 
 // Produkt-Tabelle anlegen
 // rc: 0 = ok, -1 = error
@@ -127,13 +124,12 @@ int db_create_table_produkt()
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "Creating table prodkt failed" << endl;
         return -1;
     }
 
     PQclear(res);
     return 0;
-};
+}
 
 // Tabelle tablename löschen und aus DB-Schema entfernen
 // rc: 0 = ok, -1 = error
@@ -146,12 +142,11 @@ int db_drop_table(const string &tablename)
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "Dropping table " << tablename << " failed" << endl;
         return -1;
     }
     PQclear(res);
     return 0;
-};
+}
 
 // -------------------------------------
 // Existenz/Anzahl von Tupel zurückgeben
@@ -168,7 +163,6 @@ int db_check_hnr(const string &hnr)
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
         PQclear(res);
-        cout << "Checking hnr: " << hnr << " failed" << endl;
         return -1;
     }
 
@@ -182,6 +176,8 @@ int db_check_hnr(const string &hnr)
     {
         return 1;
     }
+    // um der Compilerwarnung zu entgehen
+    return count;
 }
 
 // Prüfen, ob pnr in Produkt schon vorhanden ist?
@@ -195,7 +191,6 @@ int db_check_pnr(const string &pnr)
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
         PQclear(res);
-        cout << "Checking pnr: " << pnr << " failed" << endl;
         return -1;
     }
     int count = atoi(PQgetvalue(res, 0, 0));
@@ -208,11 +203,26 @@ int db_check_pnr(const string &pnr)
     {
         return 1;
     }
-};
+    // um der Compilerwarnung zu entgehen
+    return count;
+}
 
 // Anzahl der Tupel in der Tabelle tablename zurückgeben
 // rc: n = Anzahl der Tupel (n>=0), -1 = error
-int db_count(const string &tablename) { return 0; };
+int db_count(const string &tablename)
+{
+    string query = "SELECT COUNT(*) FROM " + tablename + ";";
+    cout << "Counting tuples from " << tablename << endl;
+    PGresult *res = PQexec(conn, query.c_str());
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    int count = atoi(PQgetvalue(res, 0, 0));
+    PQclear(res);
+    return count;
+}
 
 // -------------------------------
 // Tupel einfügen, ändern, löschen
@@ -229,12 +239,11 @@ int db_insert_produkt(const string &pnr, const string &name, const string &preis
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "Inserting into produkt failed" << endl;
         return -1;
     }
     PQclear(res);
     return 0;
-};
+}
 
 // Einfuegen Hersteller
 // rc: 0 = ok, -1 = error
@@ -246,29 +255,97 @@ int db_insert_hersteller(const string &hnr, const string &name, const string &st
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         PQclear(res);
-        cout << "Inserting into hersteller failed!" << endl;
         return -1;
     }
     PQclear(res);
     return 0;
-};
+}
 
 // Ändern Produkt
 // rc: 0 = ok, -1 = error
-int db_update_produkt(const string &pnr, const string &name, const string &preis, const string &hnr) { return 0; };
+int db_update_produkt(const string &pnr, const string &name, const string &preis, const string &hnr)
+{
+    string query = "UPDATE produkt SET name = '" + name + "', preis = '" + preis + "', hnr = '" + hnr + "' WHERE pnr = '" + pnr + "';";
+    cout << "Updating produkt: " << pnr << endl;
+    PGresult *res = PQexec(conn, query.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    return 0;
+}
 
 // Ändern Hersteller
 // rc: 0 = ok, -1 = error
-int db_update_hersteller(const string &hnr, const string &name, const string &stadt) { return 0; };
+int db_update_hersteller(const string &hnr, const string &name, const string &stadt)
+{
+    string query = "UPDATE hersteller SET name = '" + name + "', stadt = '" + stadt + "' WHERE hnr = '" + hnr + "';";
+    cout << "Updating hersteller: " << hnr << endl;
+    PGresult *res = PQexec(conn, query.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    return 0;
+}
 
 // Löschen Produkt
 // rc: 0 = ok, -1 = error
-int db_delete_produkt(const string &pnr) { return 0; };
+int db_delete_produkt(const string &pnr)
+{
+    string query = "DELETE FROM produkt WHERE pnr ='" + pnr + "';";
+    cout << "Deleting from produkt: " << pnr << endl;
+    PGresult *res = PQexec(conn, query.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    return 0;
+}
 
 // Löschen Hersteller und aller abhängigen Produkte
 // rc: 0 = ok, -1 = error
-int db_delete_hersteller(const string &hnr) { return 0; };
+int db_delete_hersteller(const string &hnr)
+{
+    string query = "DELETE FROM hersteller WHERE hnr ='" + hnr + "';";
+    cout << "Deleting from hersteller: " << hnr << endl;
+    PGresult *res = PQexec(conn, query.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    return 0;
+}
 
 // Loeschen des kompletten Tabelleninhalts beider Tabellen
 // rc: 0 = ok, -1 = error
-int db_delete() { return 0; };
+int db_delete()
+{
+    string query_produkt = "TRUNCATE TABLE produkt;";
+    string query_hersteller = "TRUNCATE TABLE hersteller;";
+    cout << "Truncating from produkt" << endl;
+    PGresult *res = PQexec(conn, query_produkt.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    cout << "Truncating from hersteller" << endl;
+    res = PQexec(conn, query_hersteller.c_str());
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        PQclear(res);
+        return -1;
+    }
+    PQclear(res);
+    return 0;
+}
